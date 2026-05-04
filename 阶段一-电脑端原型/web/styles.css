@@ -118,9 +118,9 @@ summary {
 }
 
 .topbar {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 428px);
+  align-items: end;
   gap: 20px;
   padding: 26px;
   border: 1px solid rgba(255, 255, 255, 0.68);
@@ -147,8 +147,8 @@ summary {
 .status-card {
   display: flex;
   align-items: center;
-  min-width: 300px;
-  max-width: 420px;
+  width: 100%;
+  min-width: 0;
   gap: 12px;
   padding: 14px;
   border: 1px solid var(--line);
@@ -164,7 +164,8 @@ summary {
 .status-card span {
   color: var(--muted);
   font-size: 13px;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: keep-all;
 }
 
 .status-dot {
@@ -185,6 +186,8 @@ summary {
   grid-template-columns: minmax(0, 1.45fr) minmax(350px, 0.75fr);
   gap: 18px;
   margin-top: 18px;
+  position: relative;
+  z-index: 1;
 }
 
 .panel {
@@ -342,9 +345,20 @@ summary {
 }
 
 .secondary-button,
-.link-button {
+.link-button,
+.secondary-link {
   color: var(--moss-dark);
   background: rgba(95, 159, 120, 0.14);
+}
+
+.secondary-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  border-radius: 10px;
+  padding: 10px 13px;
+  text-decoration: none;
+  font-weight: 850;
 }
 
 .danger-lite {
@@ -410,6 +424,7 @@ summary {
   display: grid;
   align-content: start;
   gap: 18px;
+  min-width: 0;
 }
 
 .memory-form {
@@ -427,6 +442,7 @@ summary {
 .memory-list {
   max-height: 360px;
   overflow: auto;
+  padding-right: 2px;
 }
 
 .item {
@@ -446,6 +462,11 @@ summary {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
+}
+
+.item-head > div {
+  min-width: 0;
 }
 
 .item strong {
@@ -455,10 +476,12 @@ summary {
 .item p {
   margin-top: 5px;
   color: var(--muted);
+  overflow-wrap: break-word;
 }
 
 .item small {
   color: var(--muted);
+  overflow-wrap: break-word;
 }
 
 .link-button {
@@ -491,8 +514,28 @@ summary {
   margin-top: 12px;
 }
 
-.tts-audio.ready {
+.tts-audio.ready,
+.reply-audio.ready {
   display: block;
+}
+
+.reply-audio {
+  display: none;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.conversation-list {
+  max-height: 320px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.conversation-item p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .confirm-row {
@@ -511,6 +554,16 @@ summary {
   color: var(--moss-dark);
 }
 
+.inline-status {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.memory-library-panel {
+  scroll-margin-top: 18px;
+}
+
 .result-box {
   white-space: pre-wrap;
   min-height: 86px;
@@ -527,7 +580,7 @@ summary {
   position: fixed;
   right: 18px;
   bottom: 18px;
-  z-index: 10;
+  z-index: 100;
   max-width: 420px;
   padding: 12px 14px;
   border-radius: 12px;
@@ -547,11 +600,10 @@ summary {
 
   .topbar {
     align-items: flex-start;
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .status-card {
-    min-width: 0;
     width: 100%;
   }
 

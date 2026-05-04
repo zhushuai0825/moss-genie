@@ -16,10 +16,10 @@
         <p class="subtitle">电脑端先模拟娃娃：听你说话，显示转写，回复你，并把重要内容存成记忆。</p>
       </div>
       <div class="status-card" id="statusCard">
-        <span class="status-dot"></span>
+        <span class="status-dot" aria-hidden="true"></span>
         <div>
-          <strong>正在连接</strong>
-          <span>检查本地服务状态</span>
+          <strong id="statusTitle">正在连接</strong>
+          <span id="statusDetail">检查本地服务状态</span>
         </div>
       </div>
     </header>
@@ -49,6 +49,7 @@
         <div class="speech-tools">
           <button type="button" id="retrySpeech" class="secondary-button">重新测试语音</button>
           <button type="button" id="focusDictation" class="secondary-button">系统听写输入</button>
+          <a class="secondary-link" href="#memoryLibrary">查看记忆库</a>
           <span id="micStatus">麦克风状态待检查</span>
         </div>
 
@@ -64,8 +65,10 @@
           </div>
           <label class="confirm-row speak-row">
             <input type="checkbox" id="autoSpeak" checked>
-            自动用电脑声音朗读回复
+            自动用 MiniMax 人声朗读回复
           </label>
+          <p class="inline-status" id="speakStatus">回复后会在这里生成一段人声音频。</p>
+          <audio id="replyAudio" class="reply-audio" controls></audio>
         </form>
 
         <div class="turn-grid">
@@ -93,11 +96,11 @@
           <div class="list" id="memoryHitList"></div>
         </section>
 
-        <section class="panel">
+        <section class="panel memory-library-panel" id="memoryLibrary">
           <div class="panel-head compact">
             <div>
-              <h2>已保存记忆</h2>
-              <p>说“记住...”或“我喜欢...”会自动保存。</p>
+              <h2>记忆库</h2>
+              <p>这里就是 Moss 已经存下来的内容；每轮回复参考了哪些，会显示在上面的“本轮记忆”。</p>
             </div>
             <button type="button" id="exportData" class="secondary-button">导出</button>
           </div>
@@ -106,6 +109,16 @@
             <button type="submit">保存</button>
           </form>
           <div class="list memory-list" id="memoryList"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head compact">
+            <div>
+              <h2>最近会话</h2>
+              <p>查看每轮输入、回复来源和命中的记忆编号。</p>
+            </div>
+          </div>
+          <div class="list conversation-list" id="conversationList"></div>
         </section>
 
         <section class="panel compact-tools">

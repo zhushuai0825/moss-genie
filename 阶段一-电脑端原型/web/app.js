@@ -40,8 +40,8 @@ async function loadStatus() {
   const tts = data.tts;
   const card = $("#statusCard");
   card.querySelector(".status-dot").classList.add("ok");
-  card.querySelector("strong").textContent = "本地服务在线";
-  card.querySelector("span").textContent = model.minimax_configured
+  $("#statusTitle").textContent = "本地服务在线";
+  $("#statusDetail").textContent = model.minimax_configured
     ? `MiniMax 文本模型：${model.minimax_model}`
     : "未配置云端模型，当前会使用 Ollama 或本地 fallback";
   $("#modelBadge").textContent = model.minimax_configured
@@ -78,9 +78,10 @@ function renderMemoryHits(items) {
   for (const item of items) {
     const div = document.createElement("div");
     div.className = "item hit-item";
+    const type = memoryType(item);
     div.innerHTML = `
-      <strong>#${item.id} · ${escapeHtml(item.kind)}</strong>
-      <p>${escapeHtml(item.content)}</p>
+      <strong>${escapeHtml(type)} · #${item.id}</strong>
+      <p>${escapeHtml(memoryDisplayText(item))}</p>
       <small>${escapeHtml(item.tags || "无标签")}</small>
     `;
     list.appendChild(div);
@@ -104,11 +105,11 @@ async function sendChatText(message) {
     $("#lastAssistantText").textContent = data.reply;
     $("#ttsText").value = data.reply;
     addMessage("assistant", data.reply, meta);
-    speakLocally(data.reply);
+    speakReply(data.reply);
     renderMemoryHits(data.memory_hits);
     if (data.saved_memory) showToast("已自动保存一条记忆");
     if (data.wish_created) showToast("已从聊天中种下一颗心愿种子");
-    await loadMemories();
+    await Promise.all([loadMemories(), loadConversations()]);
   } catch (error) {
     $("#lastAssistantText").textContent = `出错了：${error.message}`;
     addMessage("assistant", `出错了：${error.message}`);
@@ -120,15 +121,32 @@ async function sendChat(event) {
   await sendChatText($("#chatInput").value);
 }
 
-function speakLocally(text) {
-  if (!$("#autoSpeak").checked || !("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "zh-CN";
-  utterance.rate = 1;
-  utterance.pitch = 1.08;
-  utterance.volume = 1;
-  window.speechSynthesis.speak(utterance);
+async function speakReply(text) {
+  if (!$("#autoSpeak").checked) return;
+  const audio = $("#replyAudio");
+  $("#speakStatus").textContent = "正在生成 MiniMax 人声...";
+  audio.classList.remove("ready");
+  try {
+    const data = await api("/api/tts/speak", {
+      method: "POST",
+      body: JSON.stringify({
+        text,
+        api_key: $("#sessionApiKey").value.trim(),
+        model: $("#ttsModel").value,
+        voice_id: $("#ttsVoice").value,
+        speed: Number($("#ttsSpeed").value),
+        volume: Number($("#ttsVolume").value),
+        pitch: Number($("#ttsPitch").value),
+      }),
+    });
+    audio.src = `${data.audio_url}?t=${Date.now()}`;
+    audio.classList.add("ready");
+    $("#speakStatus").textContent = `MiniMax 人声已生成：${data.voice_id}`;
+    await audio.play().catch(() => {});
+  } catch (error) {
+    $("#speakStatus").textContent = "MiniMax 人声生成失败，请展开下方语音播放面板查看或换一个音色。";
+    showToast(`MiniMax 人声朗读失败：${error.message}`);
+  }
 }
 
 function setupSpeechRecognition() {
@@ -262,15 +280,52 @@ async function loadMemories() {
   for (const item of data.items) {
     const div = document.createElement("div");
     div.className = "item";
+    const type = memoryType(item);
     div.innerHTML = `
       <div class="item-head">
         <div>
-          <strong>${escapeHtml(item.kind)} · #${item.id}</strong>
-          <p>${escapeHtml(item.content)}</p>
+          <strong>${escapeHtml(type)} · #${item.id}</strong>
+          <p>${escapeHtml(memoryDisplayText(item))}</p>
           <small>${escapeHtml(item.tags || "无标签")} · ${escapeHtml(item.created_at)}</small>
         </div>
         <button class="link-button" data-delete-memory="${item.id}">删除</button>
       </div>
+    `;
+    list.appendChild(div);
+  }
+}
+
+function memoryType(item) {
+  const tags = item.tags || "";
+  const content = item.content || "";
+  if (tags.includes("name")) return "称呼";
+  if (content.startsWith("称呼：")) return "称呼";
+  if (tags.includes("preference")) return "偏好";
+  if (content.startsWith("偏好：")) return "偏好";
+  if (item.kind === "wish_progress") return "心愿进展";
+  if (item.kind === "note") return "手动记忆";
+  return "自动记忆";
+}
+
+function memoryDisplayText(item) {
+  const content = item.content || "";
+  if (content.startsWith("我喜欢")) return `偏好：喜欢${content.slice(3)}`;
+  if (content.startsWith("我不喜欢")) return `偏好：不喜欢${content.slice(4)}`;
+  return content;
+}
+
+async function loadConversations() {
+  const data = await api("/api/conversations");
+  const list = $("#conversationList");
+  list.innerHTML = data.items.length ? "" : "<p class='empty-text'>还没有会话记录。</p>";
+  for (const item of data.items.slice(0, 8)) {
+    const div = document.createElement("div");
+    div.className = "item conversation-item";
+    div.innerHTML = `
+      <strong>${escapeHtml(item.source)} · #${item.id}</strong>
+      <p>你：${escapeHtml(item.user_text)}</p>
+      <p>Moss：${escapeHtml(item.assistant_text)}</p>
+      <small>命中记忆：${escapeHtml(item.memory_ids || "无")} · ${escapeHtml(item.created_at)}</small>
     `;
     list.appendChild(div);
   }
@@ -413,6 +468,7 @@ async function synthesizeTts(event) {
       2,
     );
     $("#ttsApiKey").value = "";
+    $("#speakStatus").textContent = `MiniMax 人声已生成：${data.voice_id}`;
     showToast("语音已生成");
   } catch (error) {
     $("#ttsResult").textContent = `错误：${error.message}`;
@@ -469,10 +525,10 @@ async function init() {
   setupSpeechRecognition();
   syncTtsRangeValues();
   await loadStatus();
-  await Promise.all([loadCommands(), loadMemories()]);
+  await Promise.all([loadCommands(), loadMemories(), loadConversations()]);
 }
 
 init().catch((error) => {
-  $("#statusCard").querySelector("strong").textContent = "连接失败";
-  $("#statusCard").querySelector("span").textContent = error.message;
+  $("#statusTitle").textContent = "连接失败";
+  $("#statusDetail").textContent = error.message;
 });

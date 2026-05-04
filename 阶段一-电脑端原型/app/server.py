@@ -54,6 +54,12 @@ def json_response(handler: SimpleHTTPRequestHandler, payload: Any, status: int =
     handler.wfile.write(data)
 
 
+def cache_buster() -> str:
+    candidates = [WEB_DIR / "app.js", WEB_DIR / "styles.css", Path(__file__)]
+    latest = max(path.stat().st_mtime for path in candidates if path.exists())
+    return str(int(latest))
+
+
 def read_json(handler: SimpleHTTPRequestHandler) -> dict[str, Any]:
     length = int(handler.headers.get("Content-Length", "0") or "0")
     if length <= 0:
@@ -114,6 +120,7 @@ def init_db() -> None:
             );
             """
         )
+    MemoryStore.repair_existing()
 
 
 def rows_to_dicts(rows: list[sqlite3.Row]) -> list[dict[str, Any]]:
@@ -160,16 +167,50 @@ class MemoryStore:
         return rows_to_dicts(rows)
 
     @staticmethod
+    def normalize(content: str) -> tuple[str, str]:
+        text = re.sub(r"\s+", " ", content.strip()).strip(" 。.!！")
+        if text.startswith("称呼："):
+            return text, "profile,name,voice,auto"
+        if text.startswith("偏好："):
+            return text, "profile,preference,voice,auto"
+        nickname_patterns = [
+            r"^(?:我叫|我是)\s*(.+)$",
+            r"^(?:请)?(?:叫我|喊我)\s*(.+)$",
+            r"^(.+?)[,， ]*你以后(?:可不可以|可以|就)?(?:叫我|喊我)\s*(.+)$",
+            r"^以后(?:请)?(?:叫我|喊我)\s*(.+)$",
+        ]
+        for pattern in nickname_patterns:
+            match = re.search(pattern, text)
+            if match:
+                name = (match.group(2) if match.lastindex and match.lastindex >= 2 else match.group(1)).strip(" 。.!！")
+                if 1 <= len(name) <= 20:
+                    return f"称呼：{name}", "profile,name,voice,auto"
+        like_match = re.search(r"^我喜欢\s*(.+)$", text)
+        if like_match:
+            return f"偏好：喜欢{like_match.group(1).strip(' 。.!！')}", "profile,preference,voice,auto"
+        dislike_match = re.search(r"^我不喜欢\s*(.+)$", text)
+        if dislike_match:
+            return f"偏好：不喜欢{dislike_match.group(1).strip(' 。.!！')}", "profile,preference,voice,auto"
+        return text, "voice,auto"
+
+    @staticmethod
     def add(content: str, kind: str = "note", tags: str = "") -> dict[str, Any]:
         content = content.strip()
         if not content:
             raise ValueError("记忆内容不能为空")
+        if kind == "auto":
+            content, normalized_tags = MemoryStore.normalize(content)
+            tags = MemoryStore.merge_tags(normalized_tags, tags)
         with connect_db() as db:
             existing = db.execute(
                 "select * from memories where content = ? order by id desc limit 1",
                 (content,),
             ).fetchone()
             if existing:
+                merged_tags = MemoryStore.merge_tags(str(existing["tags"]), tags)
+                if merged_tags != str(existing["tags"]):
+                    db.execute("update memories set tags = ? where id = ?", (merged_tags, existing["id"]))
+                    existing = db.execute("select * from memories where id = ?", (existing["id"],)).fetchone()
                 return dict(existing)
             cur = db.execute(
                 "insert into memories(kind, content, tags, created_at) values (?, ?, ?, ?)",
@@ -177,6 +218,31 @@ class MemoryStore:
             )
             row = db.execute("select * from memories where id = ?", (cur.lastrowid,)).fetchone()
         return dict(row)
+
+    @staticmethod
+    def merge_tags(*values: str) -> str:
+        tags: list[str] = []
+        seen: set[str] = set()
+        for value in values:
+            for raw_tag in str(value or "").split(","):
+                tag = raw_tag.strip()
+                if tag and tag not in seen:
+                    tags.append(tag)
+                    seen.add(tag)
+        return ",".join(tags)
+
+    @staticmethod
+    def repair_existing() -> None:
+        with connect_db() as db:
+            rows = db.execute("select * from memories where kind = 'auto'").fetchall()
+            for row in rows:
+                normalized, normalized_tags = MemoryStore.normalize(str(row["content"]))
+                merged_tags = MemoryStore.merge_tags(normalized_tags, str(row["tags"]))
+                if normalized != row["content"] or merged_tags != row["tags"]:
+                    db.execute(
+                        "update memories set content = ?, tags = ? where id = ?",
+                        (normalized, merged_tags, row["id"]),
+                    )
 
     @staticmethod
     def delete(memory_id: int) -> bool:
@@ -188,8 +254,9 @@ class MemoryStore:
     def relevant(message: str, limit: int = 6) -> list[dict[str, Any]]:
         words = search_terms(message)
         all_items = MemoryStore.list()
+        prioritized = MemoryStore.intent_matches(message, all_items)
         if not words:
-            return all_items[: min(limit, len(all_items))]
+            return MemoryStore.unique_items([*prioritized, *all_items], limit)
         scored: list[tuple[int, dict[str, Any]]] = []
         for item in all_items:
             haystack = f"{item.get('kind', '')} {item.get('content', '')} {item.get('tags', '')}".lower()
@@ -197,11 +264,48 @@ class MemoryStore:
             if score:
                 scored.append((score, item))
         scored.sort(key=lambda pair: (pair[0], pair[1]["id"]), reverse=True)
-        return [item for _, item in scored[:limit]]
+        return MemoryStore.unique_items([*prioritized, *[item for _, item in scored]], limit)
+
+    @staticmethod
+    def intent_matches(message: str, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        text = re.sub(r"\s+", "", message)
+        intents: list[str] = []
+        if re.search(r"(我.*(叫什?么|名字|称呼)|你.*(叫我|喊我|称呼我)|该.*(叫我|喊我))", text):
+            intents.append("name")
+        if re.search(r"(我.*(喜欢|不喜欢|偏好)|记得.*(喜欢|偏好))", text):
+            intents.append("preference")
+        if not intents:
+            return []
+
+        matched: list[dict[str, Any]] = []
+        for item in items:
+            content = str(item.get("content", ""))
+            tags = str(item.get("tags", ""))
+            if "name" in intents and (content.startswith("称呼：") or "name" in tags):
+                matched.append(item)
+            elif "preference" in intents and (content.startswith("偏好：") or "preference" in tags):
+                matched.append(item)
+        return matched
+
+    @staticmethod
+    def unique_items(items: list[dict[str, Any]], limit: int) -> list[dict[str, Any]]:
+        result: list[dict[str, Any]] = []
+        seen: set[int] = set()
+        for item in items:
+            item_id = int(item["id"])
+            if item_id not in seen:
+                result.append(item)
+                seen.add(item_id)
+            if len(result) >= limit:
+                break
+        return result
 
     @staticmethod
     def maybe_remember(message: str) -> dict[str, Any] | None:
         text = message.strip()
+        normalized, normalized_tags = MemoryStore.normalize(text)
+        if normalized != re.sub(r"\s+", " ", text).strip(" 。.!！") and normalized_tags.startswith("profile"):
+            return MemoryStore.add(normalized, "auto", normalized_tags)
         patterns = [
             r"^(?:请)?记住[:：]?\s*(.+)$",
             r"^你要记得[:：]?\s*(.+)$",
@@ -209,13 +313,14 @@ class MemoryStore:
             r"^我喜欢\s*(.+)$",
             r"^我不喜欢\s*(.+)$",
             r"^以后(?:都)?\s*(.+)$",
+            r"^.*?(?:叫我|喊我)\s*(.+)$",
         ]
         for pattern in patterns:
             match = re.search(pattern, text)
             if match:
                 content = match.group(1).strip(" 。.!！")
                 if len(content) >= 2:
-                    return MemoryStore.add(content, "auto", "voice,auto")
+                    return MemoryStore.add(content, "auto")
         return None
 
 
@@ -396,6 +501,14 @@ class ModelAdapter:
         endpoint = os.getenv("MINIMAX_TEXT_ENDPOINT", "https://api.minimax.io/v1/text/chatcompletion_v2")
         model = os.getenv("MINIMAX_TEXT_MODEL", ModelAdapter.DEFAULT_MINIMAX_MODEL)
         memory_text = "\n".join(f"- {m['content']}" for m in memories[:6]) or "暂无相关记忆。"
+        name_memories = [m["content"].replace("称呼：", "", 1) for m in memories if str(m.get("content", "")).startswith("称呼：")]
+        name_rule = ""
+        if name_memories:
+            name_rule = (
+                "\n如果用户问自己的名字或你该怎么称呼用户，必须依据本地记忆回答。"
+                f"当前可见称呼记忆按新到旧是：{'、'.join(name_memories)}。"
+                "如果有多个称呼，不要说不知道，要说明我记得这些称呼，并优先说最近的一条。"
+            )
         payload = {
             "model": model,
             "messages": [
@@ -405,6 +518,7 @@ class ModelAdapter:
                         "你是心愿 Moss 精灵的电脑端大脑，像一个陪伴型桌面娃娃。"
                         "你要先回应用户刚说的话，再给一个很小、可执行的下一步。"
                         "回复中文，简短自然。不要假装你做了没做的电脑操作。"
+                        f"{name_rule}"
                         f"\n\n你可以参考这些本地记忆：\n{memory_text}"
                     ),
                 },
@@ -445,6 +559,10 @@ class ModelAdapter:
             return f"我听到了这个心愿。{memory_hint} 我先帮你把它变成一个很小的下一步：今天只做 10 分钟。"
         if any(word in message for word in ["记住", "记忆", "喜欢"]):
             return "可以，我已经把能识别出的偏好放进本地记忆。你右侧可以看到现在存了哪些。"
+        if re.search(r"(叫什?么|名字|称呼|叫我|喊我)", message):
+            names = [m["content"].replace("称呼：", "", 1) for m in memories if str(m.get("content", "")).startswith("称呼：")]
+            if names:
+                return f"我记得你最近的称呼是：{names[0]}。我还看到这些称呼记忆：{'、'.join(names)}。"
         if any(word in lower for word in ["open", "打开", "搜索", "截图", "音量"]):
             return "电脑控制已经接好第一版安全指令。请在控制面板里预览动作，再确认执行。"
         return f"我听见了：{message}。{memory_hint} 现在大模型还没连上时，我会用本地规则先陪你跑通语音和记忆流程。"
@@ -478,9 +596,9 @@ class TTSAdapter:
 
         model = str(payload.get("model", "")).strip() or os.getenv("MINIMAX_TTS_MODEL", cls.DEFAULT_MODEL)
         voice_id = str(payload.get("voice_id", "")).strip() or os.getenv("MINIMAX_TTS_VOICE", cls.DEFAULT_VOICE)
-        speed = cls._number(payload.get("speed", 1), 0.5, 2.0, 1)
-        volume = cls._number(payload.get("volume", 1), 0.1, 10.0, 1)
-        pitch = cls._number(payload.get("pitch", 0), -12.0, 12.0, 0)
+        speed = cls._json_number(payload.get("speed", 1), 0.5, 2.0, 1)
+        volume = cls._json_number(payload.get("volume", 1), 0.1, 10.0, 1)
+        pitch = cls._integer(payload.get("pitch", 0), -12, 12, 0)
         endpoint = os.getenv("MINIMAX_TTS_ENDPOINT", "https://api.minimax.io/v1/t2a_v2")
 
         req_payload = {
@@ -552,6 +670,17 @@ class TTSAdapter:
         except (TypeError, ValueError):
             number = fallback
         return max(low, min(high, number))
+
+    @classmethod
+    def _json_number(cls, value: Any, low: float, high: float, fallback: float) -> int | float:
+        number = cls._number(value, low, high, fallback)
+        if number.is_integer():
+            return int(number)
+        return round(number, 2)
+
+    @classmethod
+    def _integer(cls, value: Any, low: int, high: int, fallback: int) -> int:
+        return int(round(cls._number(value, low, high, fallback)))
 
 
 class CommandController:
@@ -695,7 +824,11 @@ def handle_chat(payload: dict[str, Any]) -> dict[str, Any]:
         title = message.replace("心愿：", "").replace("心愿:", "").strip()
         if len(title) >= 2:
             wish_created = WishStore.add(title=title, reason="从聊天中识别", next_action="写下第一步行动")
-    reply, source = ModelAdapter.reply(message, memories, api_key)
+    deterministic_reply = deterministic_memory_reply(message, memories)
+    if deterministic_reply:
+        reply, source = deterministic_reply, "memory"
+    else:
+        reply, source = ModelAdapter.reply(message, memories, api_key)
     conversation = ConversationStore.add(message, reply, source, memories[:6])
     return {
         "reply": reply,
@@ -706,6 +839,18 @@ def handle_chat(payload: dict[str, Any]) -> dict[str, Any]:
         "conversation": conversation,
         "all_memories": MemoryStore.list()[:20],
     }
+
+
+def deterministic_memory_reply(message: str, memories: list[dict[str, Any]]) -> str | None:
+    text = re.sub(r"\s+", "", message)
+    if re.search(r"(我.*(叫什?么|名字|称呼)|你.*(叫我|喊我|称呼我)|该.*(叫我|喊我))", text):
+        names = [str(m["content"]).replace("称呼：", "", 1) for m in memories if str(m.get("content", "")).startswith("称呼：")]
+        if not names:
+            return None
+        if len(names) == 1:
+            return f"我记得你叫 {names[0]}。"
+        return f"我记得你有这些称呼：{'、'.join(names)}。最新一条是 {names[0]}，之前你也让我叫过你 {names[-1]}。"
+    return None
 
 
 class MossHandler(SimpleHTTPRequestHandler):
@@ -724,6 +869,10 @@ class MossHandler(SimpleHTTPRequestHandler):
     def log_message(self, fmt: str, *args: Any) -> None:
         sys.stderr.write("[%s] %s\n" % (now_iso(), fmt % args))
 
+    def end_headers(self) -> None:
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+
     def do_GET(self) -> None:
         try:
             parsed = urllib.parse.urlparse(self.path)
@@ -737,6 +886,8 @@ class MossHandler(SimpleHTTPRequestHandler):
                     "tts": TTSAdapter.status(),
                 }
                 json_response(self, payload)
+            elif parsed.path == "/api/app-version":
+                json_response(self, {"version": cache_buster()})
             elif parsed.path == "/api/memories":
                 q = urllib.parse.parse_qs(parsed.query).get("q", [""])[0]
                 json_response(self, {"items": MemoryStore.list(q)})
@@ -762,10 +913,29 @@ class MossHandler(SimpleHTTPRequestHandler):
                         "audit": AuditLog.list(500),
                     },
                 )
+            elif parsed.path == "/":
+                html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
+                version = cache_buster()
+                html = html.replace("styles.css", f"styles.css?v={version}")
+                html = html.replace("app.js", f"app.js?v={version}")
+                data = html.encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(data)))
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                self.wfile.write(data)
             else:
                 super().do_GET()
         except Exception as exc:
             json_response(self, {"error": str(exc)}, 500)
+
+    def do_HEAD(self) -> None:
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path.startswith("/api/audio/"):
+            self._serve_audio(parsed.path.split("/")[-1], head_only=True)
+        else:
+            super().do_HEAD()
 
     def do_POST(self) -> None:
         try:
@@ -804,6 +974,9 @@ class MossHandler(SimpleHTTPRequestHandler):
             elif parsed.path == "/api/tts/synthesize":
                 result = TTSAdapter.synthesize(payload)
                 json_response(self, result, 201)
+            elif parsed.path == "/api/tts/speak":
+                result = TTSAdapter.synthesize(payload)
+                json_response(self, result, 201)
             else:
                 json_response(self, {"error": "未知 POST 接口"}, 404)
         except ValueError as exc:
@@ -813,7 +986,7 @@ class MossHandler(SimpleHTTPRequestHandler):
         except Exception as exc:
             json_response(self, {"error": str(exc)}, 500)
 
-    def _serve_audio(self, filename: str) -> None:
+    def _serve_audio(self, filename: str, head_only: bool = False) -> None:
         if not re.fullmatch(r"[A-Za-z0-9_.-]+", filename):
             json_response(self, {"error": "非法音频文件名"}, 400)
             return
@@ -827,7 +1000,8 @@ class MossHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Length", str(len(data)))
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
-        self.wfile.write(data)
+        if not head_only:
+            self.wfile.write(data)
 
     def do_DELETE(self) -> None:
         try:
