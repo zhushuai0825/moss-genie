@@ -1,0 +1,12 @@
+{
+  "name": "moss-wish-manual",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local tooling for checking the Moss wish product manual.",
+  "scripts": {
+    "qa:screenshot": "node tools/screenshot-page.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.59.1"
+  }
+}

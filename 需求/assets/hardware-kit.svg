@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">硬件配置示意图</title>
+  <desc id="desc">心愿 Moss 精灵推荐硬件清单的中等精度示意图。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f5eddf"/>
+      <stop offset="100%" stop-color="#e1ebdc"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#213b32" flood-opacity=".16"/>
+    </filter>
+    <style>
+      .title{font:800 36px "PingFang SC","Microsoft YaHei",sans-serif;fill:#182e27}
+      .card{fill:#fffaf1;stroke:#decfab;stroke-width:2;rx:24;filter:url(#shadow)}
+      .name{font:700 23px "PingFang SC","Microsoft YaHei",sans-serif;fill:#17322b}
+      .meta{font:500 17px "PingFang SC","Microsoft YaHei",sans-serif;fill:#4a665d}
+      .price{font:800 22px "PingFang SC","Microsoft YaHei",sans-serif;fill:#b66a2d}
+    </style>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <text x="62" y="70" class="title">硬件配置图：预算内工程样机版</text>
+  <text x="64" y="104" class="meta">图片为自绘示意，可替换为最终采购商品图；价格按淘宝常见区间预估。</text>
+
+  <g transform="translate(64 145)">
+    <rect class="card" width="250" height="210"/>
+    <rect x="42" y="48" width="166" height="94" rx="18" fill="#d9e8d2" stroke="#53725c" stroke-width="5"/>
+    <circle cx="75" cy="94" r="12" fill="#76ad74"/>
+    <circle cx="112" cy="94" r="12" fill="#efc66c"/>
+    <path d="M145 62 h34 v64 h-34" fill="none" stroke="#53725c" stroke-width="7"/>
+    <text x="24" y="167" class="name">Luckfox Pico Pro</text>
+    <text x="24" y="193" class="meta">Linux 网关 / 以太网</text>
+  </g>
+
+  <g transform="translate(367 145)">
+    <rect class="card" width="250" height="210"/>
+    <rect x="58" y="45" width="134" height="94" rx="18" fill="#efbd73" stroke="#8a6332" stroke-width="5"/>
+    <path d="M74 72 h102 M74 98 h102 M74 124 h102" stroke="#fff3df" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="58" cy="45" r="6" fill="#8a6332"/>
+    <circle cx="192" cy="45" r="6" fill="#8a6332"/>
+    <text x="24" y="167" class="name">ESP32-S3</text>
+    <text x="24" y="193" class="meta">麦克风 / 灯控 / 触摸</text>
+  </g>
+
+  <g transform="translate(670 145)">
+    <rect class="card" width="250" height="210"/>
+    <path d="M57 110 C82 58 166 58 191 110 C172 154 76 154 57 110Z" fill="#8bc17e" stroke="#47715f" stroke-width="5"/>
+    <circle cx="103" cy="104" r="10" fill="#17322b"/>
+    <circle cx="145" cy="104" r="10" fill="#17322b"/>
+    <path d="M110 128 Q124 140 143 128" fill="none" stroke="#17322b" stroke-width="5" stroke-linecap="round"/>
+    <text x="24" y="167" class="name">12-18cm 毛绒外壳</text>
+    <text x="24" y="193" class="meta">可拆内胆 / 隐藏开关</text>
+  </g>
+
+  <g transform="translate(973 145)">
+    <rect class="card" width="250" height="210"/>
+    <path d="M52 82 H198" stroke="#2b6b61" stroke-width="15" stroke-linecap="round"/>
+    <circle cx="62" cy="82" r="16" fill="#e95e55"/>
+    <circle cx="105" cy="82" r="16" fill="#f0c75f"/>
+    <circle cx="148" cy="82" r="16" fill="#69b37b"/>
+    <circle cx="190" cy="82" r="16" fill="#6ea8c9"/>
+    <rect x="82" y="120" width="86" height="34" rx="8" fill="#f0c75f" stroke="#8c6230" stroke-width="4"/>
+    <text x="24" y="167" class="name">WS2812 柔性灯</text>
+    <text x="24" y="193" class="meta">情绪色 / 呼吸反馈</text>
+  </g>
+
+  <g transform="translate(64 410)">
+    <rect class="card" width="250" height="210"/>
+    <rect x="80" y="52" width="90" height="78" rx="14" fill="#d8e7ed" stroke="#567784" stroke-width="5"/>
+    <circle cx="125" cy="91" r="20" fill="#213b46"/>
+    <path d="M104 91 h42 M125 70 v42" stroke="#d8e7ed" stroke-width="4"/>
+    <text x="24" y="167" class="name">I2S 硅麦</text>
+    <text x="24" y="193" class="meta">建议 INMP441 / SPM1423</text>
+  </g>
+
+  <g transform="translate(367 410)">
+    <rect class="card" width="250" height="210"/>
+    <path d="M79 78 h56 l42-33 v120 l-42-33 H79Z" fill="#efc66c" stroke="#8a6332" stroke-width="5"/>
+    <path d="M188 71 C212 94 212 116 188 139 M204 55 C240 91 240 122 204 157" fill="none" stroke="#8a6332" stroke-width="6" stroke-linecap="round"/>
+    <text x="24" y="167" class="name">I2S 功放 + 喇叭</text>
+    <text x="24" y="193" class="meta">MAX98357A + 4Ω/3W</text>
+  </g>
+
+  <g transform="translate(670 410)">
+    <rect class="card" width="250" height="210"/>
+    <rect x="75" y="58" width="100" height="96" rx="18" fill="#e9d2bc" stroke="#9b6d49" stroke-width="5"/>
+    <path d="M100 108 q25 -46 50 0" fill="none" stroke="#9b6d49" stroke-width="9" stroke-linecap="round"/>
+    <text x="24" y="167" class="name">触摸模块</text>
+    <text x="24" y="193" class="meta">摸头 / 抱抱 / 拍拍</text>
+  </g>
+
+  <g transform="translate(973 410)">
+    <rect class="card" width="250" height="210"/>
+    <rect x="62" y="68" width="126" height="62" rx="31" fill="#5c765f" stroke="#294832" stroke-width="5"/>
+    <rect x="188" y="87" width="18" height="24" rx="5" fill="#294832"/>
+    <circle cx="92" cy="99" r="15" fill="#7fbf72"/>
+    <path d="M74 150 h102" stroke="#b66a2d" stroke-width="8" stroke-linecap="round"/>
+    <text x="24" y="167" class="name">18650 电源组</text>
+    <text x="24" y="193" class="meta">保护板 / 升压 / 温控</text>
+  </g>
+</svg>

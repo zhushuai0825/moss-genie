@@ -1,0 +1,1287 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>心愿 Moss 精灵 · 本地 AI 毛绒终端产品说明书</title>
+  <style>
+    :root {
+      --ink: #172d27;
+      --muted: #60766d;
+      --soft: #fff8ec;
+      --paper: #fbf3e4;
+      --moss: #5f9f78;
+      --moss-dark: #1f4a3e;
+      --gold: #e1ad58;
+      --coral: #d96d4e;
+      --cyan: #5e9dae;
+      --line: rgba(23, 45, 39, 0.14);
+      --shadow: 0 14px 36px rgba(33, 55, 46, 0.11);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 4%, rgba(225, 173, 88, 0.35), transparent 24rem),
+        radial-gradient(circle at 90% 12%, rgba(94, 157, 174, 0.22), transparent 28rem),
+        linear-gradient(135deg, #f5ecd9 0%, #eaf0df 52%, #dbecef 100%);
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+      line-height: 1.62;
+    }
+
+    a {
+      color: var(--moss-dark);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(31, 74, 62, 0.26);
+    }
+
+    a:hover {
+      border-bottom-color: var(--moss-dark);
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 0 0 26px;
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 18px;
+      background: rgba(255, 248, 236, 0.76);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 12px 36px rgba(23, 45, 39, 0.08);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 900;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff8ec;
+      background: linear-gradient(135deg, var(--moss), var(--moss-dark));
+      box-shadow: 0 8px 20px rgba(31, 74, 62, 0.24);
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px 14px;
+      font-size: 14px;
+    }
+
+    .nav a {
+      color: var(--muted);
+      border: 0;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: minmax(0, 1.12fr) minmax(300px, 0.88fr);
+      gap: 24px;
+      padding: 38px;
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      border-radius: 22px;
+      background:
+        linear-gradient(135deg, rgba(255, 250, 241, 0.92), rgba(226, 239, 225, 0.88)),
+        radial-gradient(circle at 86% 10%, rgba(217, 109, 78, 0.18), transparent 18rem);
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -120px;
+      bottom: -150px;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: rgba(95, 159, 120, 0.16);
+      transform: rotate(-12deg);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 12px;
+      border: 1px solid rgba(31, 74, 62, 0.13);
+      border-radius: 999px;
+      color: var(--moss-dark);
+      background: rgba(255, 255, 255, 0.58);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--coral);
+      box-shadow: 0 0 0 7px rgba(217, 109, 78, 0.12);
+    }
+
+    h1 {
+      margin: 20px 0 14px;
+      max-width: 680px;
+      font-size: clamp(38px, 5vw, 62px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 620px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .hero-panel {
+      position: relative;
+      z-index: 1;
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px;
+      border-radius: 18px;
+      color: #fff8ec;
+      background:
+        linear-gradient(145deg, rgba(31, 74, 62, 0.98), rgba(18, 42, 35, 0.98)),
+        radial-gradient(circle at 80% 0%, rgba(225, 173, 88, 0.28), transparent 13rem);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .mascot {
+      display: grid;
+      min-height: 158px;
+      place-items: center;
+      border-radius: 14px;
+      background:
+        radial-gradient(circle at 50% 38%, rgba(255, 248, 236, 0.14), transparent 9rem),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+    }
+
+    .moss-face {
+      position: relative;
+      width: 124px;
+      height: 116px;
+      border-radius: 52% 48% 49% 51%;
+      background: linear-gradient(135deg, #98c987, #5e9f78);
+      box-shadow: 0 18px 35px rgba(0, 0, 0, 0.18);
+      animation: breathe 3.6s ease-in-out infinite;
+    }
+
+    .moss-face::before,
+    .moss-face::after {
+      content: "";
+      position: absolute;
+      top: 42px;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #152b25;
+    }
+
+    .moss-face::before {
+      left: 35px;
+    }
+
+    .moss-face::after {
+      right: 35px;
+    }
+
+    .smile {
+      position: absolute;
+      left: 44px;
+      top: 69px;
+      width: 38px;
+      height: 19px;
+      border-bottom: 5px solid #152b25;
+      border-radius: 0 0 999px 999px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .stat {
+      padding: 13px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .stat strong {
+      display: block;
+      color: #f0c879;
+      font-size: 23px;
+      line-height: 1.1;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 6px;
+      color: rgba(255, 248, 236, 0.76);
+      font-size: 13px;
+    }
+
+    .section {
+      margin-top: 26px;
+      padding: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.62);
+      border-radius: var(--radius);
+      background: rgba(255, 250, 241, 0.78);
+      box-shadow: 0 12px 34px rgba(23, 45, 39, 0.07);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(25px, 2.6vw, 36px);
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .section-kicker {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: var(--moss-dark);
+      background: rgba(95, 159, 120, 0.14);
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.54);
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .mini-card {
+      min-height: 132px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .mini-card strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 19px;
+      color: var(--ink);
+    }
+
+    .mini-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .callout {
+      padding: 24px;
+      border-radius: 12px;
+      color: #fff8ec;
+      background:
+        linear-gradient(135deg, rgba(31, 74, 62, 0.96), rgba(24, 49, 42, 0.94)),
+        radial-gradient(circle at 94% 14%, rgba(225, 173, 88, 0.35), transparent 16rem);
+    }
+
+    .callout h3 {
+      margin: 0 0 10px;
+      font-size: 22px;
+    }
+
+    .callout p {
+      margin: 0;
+      color: rgba(255, 248, 236, 0.78);
+    }
+
+    .image-frame {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fffaf1;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.52);
+    }
+
+    .image-frame img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.58);
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--moss-dark);
+      background: rgba(95, 159, 120, 0.13);
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .price {
+      color: #a65c25;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      margin-right: 8px;
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      color: var(--moss-dark);
+      background: rgba(95, 159, 120, 0.13);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pill {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.52);
+      font-size: 14px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 58px 1fr;
+      gap: 16px;
+      align-items: start;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .num {
+      display: grid;
+      width: 48px;
+      height: 48px;
+      place-items: center;
+      border-radius: 8px;
+      color: #fff8ec;
+      background: linear-gradient(135deg, var(--moss), var(--moss-dark));
+      font-weight: 900;
+    }
+
+    .step h3 {
+      margin: 0 0 5px;
+      font-size: 20px;
+    }
+
+    .step p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .risk {
+      border-left: 6px solid var(--coral);
+    }
+
+    .ok {
+      border-left: 6px solid var(--moss);
+    }
+
+    .code {
+      display: block;
+      overflow: auto;
+      padding: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #d9f0dc;
+      background: #142a24;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .footer {
+      margin: 38px 0 20px;
+      padding: 26px;
+      border-radius: 14px;
+      color: rgba(255, 248, 236, 0.78);
+      background: #172d27;
+    }
+
+    .footer strong {
+      color: #fff8ec;
+    }
+
+    @keyframes breathe {
+      0%,
+      100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.045);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .page {
+        padding: 12px;
+      }
+
+      .topbar {
+        position: static;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 18px;
+        border-radius: 14px;
+        flex-direction: column;
+      }
+
+      .nav {
+        justify-content: flex-start;
+        gap: 8px 12px;
+        font-size: 13px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        padding: 24px;
+      }
+
+      .hero::after {
+        display: none;
+      }
+
+      h1 {
+        margin-top: 18px;
+        font-size: clamp(34px, 10vw, 44px);
+      }
+
+      .hero p {
+        font-size: 16px;
+      }
+
+      .hero-panel {
+        padding: 18px;
+      }
+
+      .mascot {
+        min-height: 120px;
+      }
+
+      .moss-face {
+        width: 106px;
+        height: 98px;
+      }
+
+      .moss-face::before,
+      .moss-face::after {
+        top: 36px;
+        width: 11px;
+        height: 11px;
+      }
+
+      .moss-face::before {
+        left: 30px;
+      }
+
+      .moss-face::after {
+        right: 30px;
+      }
+
+      .smile {
+        left: 38px;
+        top: 58px;
+        width: 32px;
+        height: 16px;
+        border-bottom-width: 4px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .stat {
+        padding: 10px;
+      }
+
+      .stat strong {
+        font-size: 20px;
+      }
+
+      .stat span {
+        font-size: 12px;
+      }
+
+      .grid-2,
+      .grid-3,
+      .grid-4 {
+        grid-template-columns: 1fr;
+      }
+
+      .section {
+        padding: 22px;
+      }
+
+      .section-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+    }
+
+    @media (max-width: 520px) {
+      body {
+        line-height: 1.58;
+      }
+
+      .topbar {
+        padding: 12px;
+      }
+
+      .brand-mark {
+        width: 32px;
+        height: 32px;
+      }
+
+      .brand {
+        font-size: 15px;
+      }
+
+      .hero,
+      .section {
+        border-radius: 16px;
+      }
+
+      .hero {
+        padding: 18px;
+      }
+
+      .section {
+        margin-top: 18px;
+        padding: 18px;
+      }
+
+      .eyebrow {
+        font-size: 13px;
+      }
+
+      h2 {
+        font-size: 25px;
+      }
+
+      .pill-row {
+        gap: 8px;
+      }
+
+      .pill {
+        padding: 7px 10px;
+        font-size: 13px;
+      }
+
+      .hero-panel h2[style] {
+        font-size: 23px !important;
+      }
+
+      .hero-panel p[style] {
+        font-size: 15px !important;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .stat {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .stat span {
+        margin-top: 0;
+        text-align: right;
+      }
+
+      .step {
+        grid-template-columns: 42px 1fr;
+        gap: 12px;
+        padding: 14px;
+      }
+
+      .num {
+        width: 38px;
+        height: 38px;
+      }
+
+      .code {
+        font-size: 12px;
+      }
+    }
+
+    @media print {
+      .topbar {
+        display: none;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      .hero,
+      .section,
+      .footer {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">M</span>
+        <span>心愿 Moss 精灵</span>
+      </div>
+      <nav class="nav" aria-label="页面导航">
+        <a href="#summary">产品概述</a>
+        <a href="#architecture">工作原理</a>
+        <a href="#hardware">硬件组成</a>
+        <a href="#model">AI 技术</a>
+        <a href="#features">功能说明</a>
+        <a href="#usage">使用流程</a>
+        <a href="#roadmap">实施建议</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="summary">
+        <div>
+          <span class="eyebrow"><span class="dot"></span>产品说明书 v1.1 · 本地优先</span>
+          <h1>心愿 Moss 精灵</h1>
+          <p>
+            一只可以手拿、可以摸头、会听你说话、会用灯光表达情绪、能记住心愿并控制电脑的本地 AI 毛绒终端。
+            玩偶负责“陪伴感”和真实交互，本地电脑负责大模型、长期记忆、智能体调度和电脑控制。
+          </p>
+          <div style="height: 24px"></div>
+          <div class="pill-row">
+            <span class="pill">基础版 450-650 元</span>
+            <span class="pill">增强版 700-900 元</span>
+            <span class="pill">语音与记忆默认本地</span>
+            <span class="pill">中文陪伴优先</span>
+            <span class="pill">局域网控制电脑</span>
+            <span class="pill">12-18cm 毛绒可装配</span>
+          </div>
+        </div>
+        <aside class="hero-panel" aria-label="核心指标">
+          <div class="mascot">
+            <div class="moss-face"><span class="smile"></span></div>
+          </div>
+          <div>
+            <h2 style="color:#fff8ec;font-size:28px;margin-bottom:8px">产品形态</h2>
+            <p style="color:rgba(255,248,236,.76);font-size:16px">
+              毛绒玩偶本体 + ESP32-S3 交互主控 + 可选 Luckfox 网关 + 本地电脑 AI 大脑。
+            </p>
+          </div>
+          <div class="stats">
+            <div class="stat"><strong>3-8s</strong><span>普通问答响应</span></div>
+            <div class="stat"><strong>2-4h</strong><span>目标续航区间</span></div>
+            <div class="stat"><strong>4级</strong><span>电脑控制权限</span></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <div>
+            <h2>产品定位</h2>
+            <p class="section-kicker">这不是普通语音玩具，而是把本地 AI 能力做成“可触摸终端”的私人陪伴设备。</p>
+          </div>
+          <span class="badge">What it is</span>
+        </div>
+        <div class="grid-4">
+          <article class="mini-card">
+            <strong>桌面陪伴</strong>
+            <span>放在电脑旁边，负责日常聊天、提醒、情绪反馈和心愿陪伴。</span>
+          </article>
+          <article class="mini-card">
+            <strong>本地隐私</strong>
+            <span>语音识别、对话、记忆和指令调度优先在本地电脑完成，不默认上传。</span>
+          </article>
+          <article class="mini-card">
+            <strong>智能体终端</strong>
+            <span>通过本地 Agent 调用电脑工具，完成打开软件、搜索、截图、快捷键等动作。</span>
+          </article>
+          <article class="mini-card">
+            <strong>心愿容器</strong>
+            <span>把目标、秘密和灵感沉淀成“心愿种子”，用成长系统持续陪你推进。</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="architecture">
+        <div class="section-header">
+          <div>
+            <h2>工作原理</h2>
+            <p class="section-kicker">用户感觉是在和玩偶互动，实际由三层系统协同完成：玩偶交互、边缘控制、本地电脑大脑。</p>
+          </div>
+          <span class="badge">Local-first</span>
+        </div>
+        <div class="image-frame">
+          <img src="assets/system-architecture.svg" alt="心愿 Moss 精灵系统架构图">
+        </div>
+        <div class="grid-3" style="margin-top:18px">
+          <article class="card">
+            <h3>毛绒交互终端</h3>
+            <p>安装在玩偶内部，负责收音、播音、触摸反馈、灯光状态和电量提示。</p>
+          </article>
+          <article class="card">
+            <h3>边缘控制层</h3>
+            <p>ESP32-S3 负责外设控制；Luckfox Pico Pro 作为可选网关，承担局域网桥接、缓存和调试。</p>
+          </article>
+          <article class="card">
+            <h3>本地电脑大脑</h3>
+            <p>运行大模型、记忆库、心愿系统、语音识别/合成和电脑控制客户端。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="hardware">
+        <div class="section-header">
+          <div>
+            <h2>硬件组成</h2>
+            <p class="section-kicker">这里列的是本次产品真正需要的硬件，不再堆不必要配置。先做基础版，跑通后再加 Luckfox 网关。</p>
+          </div>
+          <span class="badge">BOM v1.1</span>
+        </div>
+        <div class="image-frame">
+          <img src="assets/hardware-kit.svg" alt="心愿 Moss 精灵硬件配置示意图">
+        </div>
+        <div style="height:18px"></div>
+        <table aria-label="硬件采购清单">
+          <thead>
+            <tr>
+              <th>模块</th>
+              <th>推荐关键词/型号</th>
+              <th>作用</th>
+              <th>预估价格</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Linux 小板</td>
+              <td>Luckfox Pico Pro RV1106</td>
+              <td>可选增强件。用于局域网桥接、设备管理、缓存和调试服务；不是必买项。</td>
+              <td class="price">约 260-330 元</td>
+            </tr>
+            <tr>
+              <td>外设主控</td>
+              <td>ESP32-S3 N16R8 Type-C 开发板</td>
+              <td>控制麦克风、触摸、灯光、Wi-Fi 消息和低功耗状态。</td>
+              <td class="price">约 59-89 元</td>
+            </tr>
+            <tr>
+              <td>灯光</td>
+              <td>WS2812B 柔性灯带 / 环形灯</td>
+              <td>情绪颜色、呼吸灯、唤醒状态、错误提示。</td>
+              <td class="price">约 20-35 元</td>
+            </tr>
+            <tr>
+              <td>音频输入</td>
+              <td>INMP441 I2S 硅麦</td>
+              <td>语音采集，后续可双麦降噪。</td>
+              <td class="price">约 8-18 元</td>
+            </tr>
+            <tr>
+              <td>音频输出</td>
+              <td>MAX98357A + 4Ω 3W 腔体喇叭</td>
+              <td>播放 AI 回复和提示音。</td>
+              <td class="price">约 25-45 元</td>
+            </tr>
+            <tr>
+              <td>触摸</td>
+              <td>TTP223 电容触摸模块</td>
+              <td>摸头、轻拍、抱抱等拟人交互。</td>
+              <td class="price">约 5-20 元</td>
+            </tr>
+            <tr>
+              <td>电源</td>
+              <td>18650 + 保护板 + 充放电模块</td>
+              <td>移动供电，必须做绝缘、保护和固定。</td>
+              <td class="price">约 30-60 元</td>
+            </tr>
+            <tr>
+              <td>外壳</td>
+              <td>12-18cm 可拆内胆毛绒玩偶</td>
+              <td>隐藏硬件。若想音质、续航和装配更稳，18cm 比 12cm 更友好。</td>
+              <td class="price">约 60-150 元</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout" style="margin-top:18px">
+          <h3>配置建议</h3>
+          <p>第一版建议先买 ESP32-S3、麦克风、功放喇叭、灯带、触摸、电源和毛绒外壳，预算约 450-650 元。Luckfox 网关等核心体验跑通后再加，总价仍可控制在 1000 元以内。</p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <div>
+            <h2>装配与接线</h2>
+            <p class="section-kicker">先桌面联调，再装入毛绒；电源和发热位置要留维护空间。</p>
+          </div>
+          <span class="badge">Assembly</span>
+        </div>
+        <div class="image-frame">
+          <img src="assets/wiring-diagram.svg" alt="心愿 Moss 精灵接线逻辑示意图">
+        </div>
+        <div class="grid-2" style="margin-top:18px">
+          <article class="card">
+            <h3>桌面联调</h3>
+            <p>使用杜邦线把 ESP32-S3、INMP441、MAX98357A、WS2812 和触摸模块接起来，先验证灯效、触摸、音频和通讯协议。</p>
+          </article>
+          <article class="card">
+            <h3>毛绒装配</h3>
+            <p>电源线、灯带线、喇叭线建议焊接并用热缩管保护。电池独立固定，主板外加绝缘层，充电口隐藏但可维护。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="model">
+        <div class="section-header">
+          <div>
+            <h2>AI 技术</h2>
+            <p class="section-kicker">模型选择以中文陪伴、响应速度、工具调用和本地运行稳定性为优先。</p>
+          </div>
+          <span class="badge">AI Stack</span>
+        </div>
+        <div class="grid-2">
+          <article class="card">
+            <h3>推荐模型</h3>
+            <p>中文陪伴和工具调用优先选 Qwen3 4B/8B 或 Qwen2.5 7B Instruct 量化版。喜欢 Hermes 风格时，可切换 Hermes 3 8B GGUF。</p>
+          </article>
+          <article class="card">
+            <h3>运行方式</h3>
+            <p>普通电脑用 Ollama 最省事；追求性能和可控性用 llama.cpp；Apple Silicon 可考虑 MLX。</p>
+          </article>
+          <article class="card">
+            <h3>语音识别</h3>
+            <p>优先 Whisper.cpp 或 faster-whisper 在电脑端离线识别。玩偶端只负责采集音频，减少 ESP32-S3 负担。</p>
+          </article>
+          <article class="card">
+            <h3>语音合成</h3>
+            <p>第一版可用 Piper 或 Edge TTS 缓存音色。后续再升级 CosyVoice / GPT-SoVITS 做专属可爱音色。</p>
+          </article>
+        </div>
+        <div style="height:18px"></div>
+        <table aria-label="模型推荐矩阵">
+          <thead>
+            <tr>
+              <th>场景</th>
+              <th>首选</th>
+              <th>替代</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>中文聊天与陪伴</td>
+              <td>Qwen3 4B/8B Q4</td>
+              <td>Qwen2.5 7B Instruct Q4</td>
+              <td>中文理解好，工具调用能力也适合智能体。</td>
+            </tr>
+            <tr>
+              <td>角色扮演与 Agent</td>
+              <td>Hermes 3 8B GGUF</td>
+              <td>Llama 3.1 8B Instruct</td>
+              <td>适合构建“有性格”的 Moss 精灵，但中文优先时 Qwen 更稳。</td>
+            </tr>
+            <tr>
+              <td>低配置电脑</td>
+              <td>Qwen3 1.7B / 4B</td>
+              <td>Phi / Gemma 小模型</td>
+              <td>牺牲一点聪明度，换更快响应。</td>
+            </tr>
+            <tr>
+              <td>智能体调度</td>
+              <td>OpenClaw</td>
+              <td>LangGraph / 自研状态机</td>
+              <td>用适配层隔离，避免被单一框架锁死。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section" id="features">
+        <div class="section-header">
+          <div>
+            <h2>功能说明</h2>
+            <p class="section-kicker">这些是本次产品说明书里的核心功能，优先服务“陪伴、记忆、电脑控制、心愿成长”。</p>
+          </div>
+          <span class="badge">Functions</span>
+        </div>
+        <div class="grid-3">
+          <article class="card">
+            <h3>AI 自然聊天</h3>
+            <p>支持中文闲聊、情绪安抚、日常提醒和轻量知识问答。断网时仍可通过本地电脑模型工作。</p>
+          </article>
+          <article class="card">
+            <h3>长期记忆</h3>
+            <p>保存名字、偏好、秘密、心愿、常用软件和互动记录，支持搜索、编辑、删除和导出。</p>
+          </article>
+          <article class="card">
+            <h3>情绪变色</h3>
+            <p>开心为暖黄，思考为青绿，困惑为蓝白，拒绝为橙红，低电量为慢红闪。</p>
+          </article>
+          <article class="card">
+            <h3>触摸互动</h3>
+            <p>摸头触发问候或撒娇，长按进入安静模式，连续轻拍触发“我在”的陪伴反馈。</p>
+          </article>
+          <article class="card">
+            <h3>心愿种子</h3>
+            <p>把用户的心愿保存为种子，按行动进度成长为发芽、长叶、开花和完成状态。</p>
+          </article>
+          <article class="card">
+            <h3>电脑控制</h3>
+            <p>打开软件、调音量、播放暂停、打开网页、搜索、截图、快捷键、输入文字；危险操作二次确认。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="usage">
+        <div class="section-header">
+          <div>
+            <h2>使用流程</h2>
+            <p class="section-kicker">产品使用时不需要理解技术细节，用户只要像和桌面小伙伴说话一样交互。</p>
+          </div>
+          <span class="badge">User Flow</span>
+        </div>
+        <div class="grid-4">
+          <article class="mini-card">
+            <strong>1. 唤醒</strong>
+            <span>说出唤醒词或摸头，灯光从待机呼吸切换为聆听状态。</span>
+          </article>
+          <article class="mini-card">
+            <strong>2. 理解</strong>
+            <span>玩偶采集语音，本地电脑完成语音识别、意图识别和记忆检索。</span>
+          </article>
+          <article class="mini-card">
+            <strong>3. 回复/行动</strong>
+            <span>Moss 精灵用语音回复，并按权限执行打开软件、搜索、截图等电脑动作。</span>
+          </article>
+          <article class="mini-card">
+            <strong>4. 记录</strong>
+            <span>重要偏好、心愿和执行结果写入本地记忆，用户可以查询、删除和导出。</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <div>
+            <h2>心愿种子逻辑</h2>
+            <p class="section-kicker">这是 Moss 精灵的特色系统：把目标变成会成长的陪伴对象，而不是冷冰冰的待办事项。</p>
+          </div>
+          <span class="badge">Wish Engine</span>
+        </div>
+        <div class="grid-2">
+          <div class="stack">
+            <div class="step">
+              <div class="num">01</div>
+              <div>
+                <h3>种下心愿</h3>
+                <p>用户说“我想学会画画”，Moss 精灵生成心愿卡，询问原因和第一步。</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="num">02</div>
+              <div>
+                <h3>记录行动</h3>
+                <p>每次用户完成练习、打开软件、上传作品，种子获得成长值。</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="num">03</div>
+              <div>
+                <h3>情绪反馈</h3>
+                <p>成长时灯光更明亮，语音反馈更开心；停滞时温柔提醒，不做焦虑压迫。</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="num">04</div>
+              <div>
+                <h3>开花归档</h3>
+                <p>心愿完成后生成成长记录，进入本地记忆花园。</p>
+              </div>
+            </div>
+          </div>
+          <pre class="code">{
+  "wish_id": "wish_001",
+  "title": "学会画一只 Moss 精灵",
+  "stage": "sprout",
+  "energy": 42,
+  "next_action": "今晚画 20 分钟草图",
+  "memory_links": ["第一次说想画画", "喜欢青绿色"]
+}</pre>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <div>
+            <h2>安全与权限</h2>
+            <p class="section-kicker">电脑控制默认保守开启，高风险动作必须经过确认，保证可玩也可控。</p>
+          </div>
+          <span class="badge">Safety</span>
+        </div>
+        <table aria-label="权限分级">
+          <thead>
+            <tr>
+              <th>等级</th>
+              <th>可执行能力</th>
+              <th>确认方式</th>
+              <th>示例</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>L0</td>
+              <td>只聊天，不控制电脑</td>
+              <td>无需确认</td>
+              <td>陪聊、解释、记录心愿</td>
+            </tr>
+            <tr>
+              <td>L1</td>
+              <td>安全控制</td>
+              <td>默认允许，可随时关闭</td>
+              <td>调音量、播放暂停、打开网页</td>
+            </tr>
+            <tr>
+              <td>L2</td>
+              <td>编辑控制</td>
+              <td>首次授权 + 可撤销</td>
+              <td>输入文字、快捷键、打开应用</td>
+            </tr>
+            <tr>
+              <td>L3</td>
+              <td>高风险控制</td>
+              <td>语音复述或电脑弹窗二次确认</td>
+              <td>关机、删除文件、发送消息、付款相关</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section" id="roadmap">
+        <div class="section-header">
+          <div>
+            <h2>实施建议</h2>
+            <p class="section-kicker">建议按样机节奏推进：先证明体验，再追求外观完整和长期稳定。</p>
+          </div>
+          <span class="badge">Build Plan</span>
+        </div>
+        <div class="grid-2">
+          <article class="card">
+            <h3>阶段一 · 电脑端原型</h3>
+            <p>电脑端跑通本地模型、记忆库、心愿种子和 5 个安全电脑控制指令。</p>
+          </article>
+          <article class="card">
+            <h3>阶段二 · 裸板联调</h3>
+            <p>ESP32-S3 跑通灯光、触摸、录音、播放和 WebSocket/MQTT 通讯。</p>
+          </article>
+          <article class="card">
+            <h3>阶段三 · 毛绒集成</h3>
+            <p>把电池、喇叭、麦克风、灯带和主板安全塞入玩偶，完成固定、绝缘和维护口。</p>
+          </article>
+          <article class="card">
+            <h3>阶段四 · 展示样机</h3>
+            <p>连续演示 30 分钟，完成聊天、记忆召回、心愿成长、电脑控制和危险指令拒绝。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <div>
+            <h2>体验指标</h2>
+            <p class="section-kicker">这些指标用于判断产品样机是否达到“可以稳定展示和日常试用”的水平。</p>
+          </div>
+          <span class="badge">Quality</span>
+        </div>
+        <div class="grid-3">
+          <article class="card">
+            <h3>语音唤醒</h3>
+            <p>安静环境下唤醒成功率 ≥ 90%，误触发率可接受，并支持手动静音。</p>
+          </article>
+          <article class="card">
+            <h3>响应速度</h3>
+            <p>普通问答 3-8 秒内回复，灯光状态切换延迟低于 200ms。</p>
+          </article>
+          <article class="card">
+            <h3>稳定运行</h3>
+            <p>连续运行 30 分钟不重启、不过热、不掉线。</p>
+          </article>
+          <article class="card">
+            <h3>记忆可控</h3>
+            <p>记忆支持保存、搜索、删除、导出，敏感记录可单独加密。</p>
+          </article>
+          <article class="card">
+            <h3>控制可审计</h3>
+            <p>电脑控制指令有日志，L3 高风险操作必须二次确认。</p>
+          </article>
+          <article class="card">
+            <h3>外观完整</h3>
+            <p>硬件不明显外露，开关和充电口隐藏但方便维护。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <div>
+            <h2>维护与扩展</h2>
+            <p class="section-kicker">Moss 精灵需要像一台小设备一样维护：能更新、能备份、能停用权限，也能替换模型。</p>
+          </div>
+          <span class="badge">Ops</span>
+        </div>
+        <div class="grid-3">
+          <article class="card">
+            <h3>记忆维护</h3>
+            <p>提供“查看记忆、删除记忆、导出记忆、清空设备”的本地管理入口，避免长期使用后不可控。</p>
+          </article>
+          <article class="card">
+            <h3>权限维护</h3>
+            <p>电脑控制令牌可撤销；L2/L3 权限默认关闭，只有用户主动开启后才允许执行。</p>
+          </article>
+          <article class="card">
+            <h3>模型扩展</h3>
+            <p>模型与 Agent 通过适配层连接，后续可在 Qwen、Hermes、OpenClaw 或自研 Agent 之间切换。</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <strong>产品建议：</strong>
+      先做“本地电脑 AI 大脑 + 毛绒交互终端”的稳定版本。这个方案能控制成本、保护隐私、保证效果，也最适合后续继续升级成更完整的私人 AI 毛绒终端。
+    </footer>
+  </div>
+</body>
+</html>

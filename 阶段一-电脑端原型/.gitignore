@@ -1,0 +1,7 @@
+.env
+data/*.db
+data/*.db-*
+data/screenshots/
+data/audio/
+__pycache__/
+*.pyc

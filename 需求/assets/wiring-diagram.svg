@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">接线逻辑示意图</title>
+  <desc id="desc">ESP32-S3、Luckfox、麦克风、喇叭、灯带、触摸、电源之间的连接关系。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f6efe3"/>
+      <stop offset="100%" stop-color="#dfece4"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#162e28" flood-opacity=".14"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#2d5248"/>
+    </marker>
+    <style>
+      .title{font:800 36px "PingFang SC","Microsoft YaHei",sans-serif;fill:#182e27}
+      .box{fill:#fffaf1;stroke:#d8c79f;stroke-width:2;rx:22;filter:url(#shadow)}
+      .core{fill:#1d3c34;stroke:#1d3c34;rx:22;filter:url(#shadow)}
+      .label{font:700 24px "PingFang SC","Microsoft YaHei",sans-serif;fill:#17322b}
+      .labelLight{font:700 24px "PingFang SC","Microsoft YaHei",sans-serif;fill:#fffaf1}
+      .small{font:500 17px "PingFang SC","Microsoft YaHei",sans-serif;fill:#4a665d}
+      .smallLight{font:500 17px "PingFang SC","Microsoft YaHei",sans-serif;fill:#dcebe0}
+      .wire{fill:none;stroke:#2d5248;stroke-width:4;stroke-linecap:round;marker-end:url(#arrow)}
+      .power{fill:none;stroke:#b85d35;stroke-width:5;stroke-linecap:round;marker-end:url(#arrow)}
+      .data{fill:none;stroke:#3e7c8d;stroke-width:4;stroke-linecap:round;stroke-dasharray:9 10;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <text x="64" y="74" class="title">接线逻辑图：免焊优先，核心处建议焊接加固</text>
+  <text x="66" y="108" class="small">实际 GPIO 可按开发板引脚重映射；所有模块必须共地，电池线路必须加保护与绝缘。</text>
+
+  <rect x="500" y="210" width="280" height="260" class="core"/>
+  <text x="560" y="260" class="labelLight">ESP32-S3</text>
+  <text x="535" y="300" class="smallLight">GPIO4  → WS2812 DIN</text>
+  <text x="535" y="330" class="smallLight">GPIO5  → 触摸输入</text>
+  <text x="535" y="360" class="smallLight">GPIO6/7 → I2S BCLK/LRCLK</text>
+  <text x="535" y="390" class="smallLight">GPIO8  → 麦克风 DIN</text>
+  <text x="535" y="420" class="smallLight">GPIO9  → 功放 DOUT</text>
+
+  <rect x="84" y="184" width="260" height="110" class="box"/>
+  <text x="125" y="230" class="label">I2S 硅麦</text>
+  <text x="116" y="260" class="small">3V3 / GND / BCLK / LRCLK / DATA</text>
+
+  <rect x="84" y="354" width="260" height="110" class="box"/>
+  <text x="120" y="400" class="label">I2S 功放喇叭</text>
+  <text x="116" y="430" class="small">5V / GND / BCLK / LRCLK / DIN</text>
+
+  <rect x="84" y="524" width="260" height="110" class="box"/>
+  <text x="142" y="570" class="label">触摸模块</text>
+  <text x="128" y="600" class="small">3V3 / GND / SIG</text>
+
+  <rect x="915" y="174" width="270" height="112" class="box"/>
+  <text x="980" y="220" class="label">WS2812 灯</text>
+  <text x="955" y="250" class="small">5V / GND / DIN，建议串 330Ω</text>
+
+  <rect x="915" y="344" width="270" height="112" class="box"/>
+  <text x="976" y="390" class="label">Luckfox 网关</text>
+  <text x="947" y="420" class="small">UART/USB/以太网，非大模型主机</text>
+
+  <rect x="915" y="524" width="270" height="112" class="box"/>
+  <text x="962" y="570" class="label">本地电脑客户端</text>
+  <text x="952" y="600" class="small">OpenClaw / LLM / 系统控制</text>
+
+  <rect x="462" y="560" width="360" height="95" class="box"/>
+  <text x="505" y="600" class="label">18650 + 保护 + 充放电</text>
+  <text x="512" y="628" class="small">5V 2A 升压给 ESP32/灯/功放；Luckfox 建议独立稳压</text>
+
+  <path class="wire" d="M344 238 C420 238 420 280 500 295"/>
+  <path class="wire" d="M344 409 C420 409 420 405 500 390"/>
+  <path class="wire" d="M344 579 C420 579 420 445 500 430"/>
+  <path class="wire" d="M780 260 C850 250 845 230 915 230"/>
+  <path class="data" d="M780 380 C850 380 850 400 915 400"/>
+  <path class="data" d="M1050 456 C1050 490 1050 490 1050 524"/>
+  <path class="power" d="M640 560 V470"/>
+  <path class="power" d="M822 607 C875 607 875 230 915 230"/>
+  <path class="power" d="M462 607 C405 607 405 409 344 409"/>
+  <path class="power" d="M462 607 C405 607 405 238 344 238"/>
+  <text x="835" y="327" class="small">局域网消息</text>
+  <text x="820" y="510" class="small">控制回执 / 状态同步</text>
+  <text x="690" y="540" class="small">电源</text>
+</svg>

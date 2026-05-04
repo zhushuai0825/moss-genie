@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>心愿 Moss 精灵 · 语音原型</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Stage 1 · Voice Companion</p>
+        <h1>心愿 Moss 精灵</h1>
+        <p class="subtitle">电脑端先模拟娃娃：听你说话，显示转写，回复你，并把重要内容存成记忆。</p>
+      </div>
+      <div class="status-card" id="statusCard">
+        <span class="status-dot"></span>
+        <div>
+          <strong>正在连接</strong>
+          <span>检查本地服务状态</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="voice-layout">
+      <section class="panel voice-panel">
+        <div class="panel-head">
+          <div>
+            <h2>语音对话</h2>
+            <p id="speechSupport">正在检查麦克风语音输入...</p>
+          </div>
+          <span class="badge" id="modelBadge">model</span>
+        </div>
+
+        <div class="voice-stage">
+          <button type="button" class="mic-button" id="micButton">
+            <span class="mic-icon">●</span>
+            <strong>点击说话</strong>
+            <small id="micHint">浏览器会请求麦克风权限</small>
+          </button>
+
+          <div class="transcript-box">
+            <span>我听到</span>
+            <p id="transcriptText">还没有语音输入。也可以在下面直接打字测试。</p>
+          </div>
+        </div>
+        <div class="speech-tools">
+          <button type="button" id="retrySpeech" class="secondary-button">重新测试语音</button>
+          <button type="button" id="focusDictation" class="secondary-button">系统听写输入</button>
+          <span id="micStatus">麦克风状态待检查</span>
+        </div>
+
+        <form class="chat-form" id="chatForm">
+          <label>
+            临时 MiniMax Key
+            <input id="sessionApiKey" type="password" autocomplete="off" spellcheck="false" placeholder="可留空。填一次后，本页对话和朗读都会使用它，不会保存。">
+          </label>
+          <textarea id="chatInput" rows="3" placeholder="也可以直接输入：记住我喜欢青绿色；或者：我想每天画 20 分钟草图"></textarea>
+          <div class="button-row">
+            <button type="submit">发送给 Moss</button>
+            <button type="button" id="clearChat" class="secondary-button">清空屏幕</button>
+          </div>
+          <label class="confirm-row speak-row">
+            <input type="checkbox" id="autoSpeak" checked>
+            自动用电脑声音朗读回复
+          </label>
+        </form>
+
+        <div class="turn-grid">
+          <section class="turn-box">
+            <h3>本轮输入</h3>
+            <p id="lastUserText">等待你说话。</p>
+          </section>
+          <section class="turn-box">
+            <h3>大模型回复</h3>
+            <p id="lastAssistantText">连接后会显示回复来源和内容。</p>
+          </section>
+        </div>
+
+        <div class="chat-log" id="chatLog" aria-live="polite"></div>
+      </section>
+
+      <aside class="side-stack">
+        <section class="panel">
+          <div class="panel-head compact">
+            <div>
+              <h2>本轮记忆</h2>
+              <p>这里会显示这次回复参考了哪些旧话。</p>
+            </div>
+          </div>
+          <div class="list" id="memoryHitList"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head compact">
+            <div>
+              <h2>已保存记忆</h2>
+              <p>说“记住...”或“我喜欢...”会自动保存。</p>
+            </div>
+            <button type="button" id="exportData" class="secondary-button">导出</button>
+          </div>
+          <form id="memoryForm" class="memory-form">
+            <input id="memoryContent" placeholder="手动补一条记忆">
+            <button type="submit">保存</button>
+          </form>
+          <div class="list memory-list" id="memoryList"></div>
+        </section>
+
+        <section class="panel compact-tools">
+          <details>
+            <summary>语音播放和电脑动作</summary>
+            <form id="ttsForm" class="stack tool-form">
+              <label>
+                朗读文本
+                <textarea id="ttsText" rows="3" maxlength="1000" placeholder="默认会填入 Moss 的最新回复"></textarea>
+              </label>
+              <label>
+                临时 MiniMax Key
+                <input id="ttsApiKey" type="password" autocomplete="off" spellcheck="false" placeholder="可留空，优先使用本机 .env">
+              </label>
+              <div class="tts-grid">
+                <label>
+                  模型
+                  <select id="ttsModel">
+                    <option value="speech-2.8-hd">speech-2.8-hd</option>
+                    <option value="speech-2.8-turbo">speech-2.8-turbo</option>
+                    <option value="speech-2.6-hd">speech-2.6-hd</option>
+                    <option value="speech-2.6-turbo">speech-2.6-turbo</option>
+                  </select>
+                </label>
+                <label>
+                  音色
+                  <select id="ttsVoice">
+                    <option value="Chinese (Mandarin)_Cute_Spirit">Cute Spirit</option>
+                    <option value="Chinese (Mandarin)_Warm_Girl">Warm Girl</option>
+                    <option value="Chinese (Mandarin)_Gentle_Youth">Gentle Youth</option>
+                    <option value="Chinese (Mandarin)_Soft_Girl">Soft Girl</option>
+                  </select>
+                </label>
+              </div>
+              <div class="tts-grid tts-grid-three">
+                <label>
+                  速度 <span id="ttsSpeedValue">1.0</span>
+                  <input id="ttsSpeed" type="range" min="0.5" max="2" step="0.1" value="1">
+                </label>
+                <label>
+                  音量 <span id="ttsVolumeValue">1.0</span>
+                  <input id="ttsVolume" type="range" min="0.1" max="2" step="0.1" value="1">
+                </label>
+                <label>
+                  音调 <span id="ttsPitchValue">0</span>
+                  <input id="ttsPitch" type="range" min="-6" max="6" step="1" value="0">
+                </label>
+              </div>
+              <button type="submit" id="ttsButton">朗读回复</button>
+            </form>
+            <audio id="ttsAudio" class="tts-audio" controls></audio>
+            <pre class="result-box" id="ttsResult">等待语音播放...</pre>
+
+            <form id="commandForm" class="stack tool-form">
+              <label>
+                本地电脑动作
+                <select id="commandSelect"></select>
+              </label>
+              <div id="commandFields" class="stack"></div>
+              <label class="confirm-row">
+                <input type="checkbox" id="commandConfirm">
+                我确认执行这个本地电脑动作
+              </label>
+              <div class="button-row">
+                <button type="button" id="previewCommand" class="secondary-button">预览</button>
+                <button type="submit" class="danger-lite">执行</button>
+              </div>
+            </form>
+            <pre class="result-box" id="commandResult">等待指令...</pre>
+          </details>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
